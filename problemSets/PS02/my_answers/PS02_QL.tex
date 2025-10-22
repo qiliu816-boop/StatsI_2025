@@ -1,0 +1,196 @@
+\documentclass[12pt,letterpaper]{article}
+\usepackage{graphicx,textcomp}
+\usepackage{natbib}
+\usepackage{setspace}
+\usepackage{fullpage}
+\usepackage{xcolor}
+\usepackage[reqno]{amsmath}
+\usepackage{amsthm,amssymb}
+\usepackage{fancyvrb}
+\usepackage{enumerate}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage[compact]{titlesec}
+\usepackage{listings}
+\usepackage{subcaption}
+
+% ----- listings style for R -----
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+  backgroundcolor=\color{backcolour},
+  commentstyle=\color{codegreen},
+  keywordstyle=\color{magenta},
+  numberstyle=\tiny\color{codegray},
+  stringstyle=\color{codepurple},
+  basicstyle=\footnotesize\ttfamily,
+  breakatwhitespace=false,
+  breaklines=true,
+  captionpos=b,
+  keepspaces=true,
+  numbers=left,
+  numbersep=5pt,
+  showspaces=false,
+  showstringspaces=false,
+  showtabs=false,
+  tabsize=2,
+  language=R
+}
+\lstset{style=mystyle}
+
+\title{Problem Set 2}
+\author{QiLiu 25340516}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+% ======================================================
+\section*{Question 1: Political Science --- Chi-Square Test}
+\noindent\textbf{Observed counts}
+\begin{center}
+\begin{tabular}{r|rrr|r}
+\hline
+Class $\backslash$ Outcome & Not Stopped & Bribe & Warning & Row total\\ \hline
+Upper & 14 & 6 & 7 & 27\\
+Lower & 7 & 7 & 1 & 15\\ \hline
+Column total & 21 & 13 & 8 & 42\\ \hline
+\end{tabular}
+\end{center}
+
+\begin{enumerate}[(a)]
+\item \textbf{Compute the chi-square statistic (show the arithmetic).}
+
+Let $n=42$. Expected counts under independence are
+\[
+E_{ij}=\frac{(\text{row}_i)(\text{col}_j)}{n}.
+\]
+Hence
+\begin{align*}
+E_{\text{Upper,NS}} &= \frac{27\times 21}{42}=13.5, &
+E_{\text{Upper,Bribe}} &= \frac{27\times 13}{42}=8.3571429, &
+E_{\text{Upper,Warn}} &= \frac{27\times 8}{42}=5.1428571,\\
+E_{\text{Lower,NS}} &= \frac{15\times 21}{42}=7.5, &
+E_{\text{Lower,Bribe}} &= \frac{15\times 13}{42}=4.6428571, &
+E_{\text{Lower,Warn}} &= \frac{15\times 8}{42}=2.8571429.
+\end{align*}
+
+The Pearson chi-square statistic is
+\begin{align*}
+\chi^2 &= \sum_{i,j}\frac{(O_{ij}-E_{ij})^2}{E_{ij}} \\
+&= \frac{(14-13.5)^2}{13.5}
+ + \frac{(6-8.3571429)^2}{8.3571429}
+ + \frac{(7-5.1428571)^2}{5.1428571}\\
+&\quad + \frac{(7-7.5)^2}{7.5}
+ + \frac{(7-4.6428571)^2}{4.6428571}
+ + \frac{(1-2.8571429)^2}{2.8571429}\\
+&= 0.0137 + 0.6648 + 0.6519 + 0.0333 + 1.2907 + 1.1368\\
+&= \mathbf{3.7912} \ (\text{rounded}).
+\end{align*}
+
+\textit{R verification:}
+\begin{lstlisting}[caption={Q1(a) R verification}]
+obs <- matrix(c(14,6,7, 7,7,1), nrow=2, byrow=TRUE)
+rownames(obs) <- c("Upper","Lower")
+colnames(obs) <- c("NotStopped","Bribe","Warning")
+rowSums <- rowSums(obs); colSums <- colSums(obs); total <- sum(obs)
+expected <- outer(rowSums,colSums)/total
+chi2 <- sum((obs-expected)^2/expected); chi2
+\end{lstlisting}
+
+\item \textbf{Compute the p-value at $\alpha=0.10$ and conclude.}
+
+Degrees of freedom: $(r-1)(c-1)=(2-1)(3-1)=\mathbf{2}$.  
+Right--tail p-value:
+\[
+p = \Pr\{\chi^2_{(2)} \ge 3.7912\} = \mathbf{0.1502}.
+\]
+Since $p=0.1502>0.10$, we \textbf{fail to reject} the null hypothesis of independence.
+
+\textit{R:} \verb|chisq.test(obs, correct=FALSE)| returns $X^2=3.7912$, $df=2$, $p=0.1502$ (warning appears because some $E_{ij}<5$).
+
+\item \textbf{Compute standardized residuals and fill the table.}
+
+\textit{Pearson residuals} $r_{ij}=(O_{ij}-E_{ij})/\sqrt{E_{ij}}$:
+\begin{center}
+\begin{tabular}{r|rrr}\hline
+ & Not Stopped & Bribe & Warning\\ \hline
+Upper & 0.1361 & -0.8154 & 0.8189\\
+Lower & -0.1826 & 1.0939 & -1.0987\\ \hline
+\end{tabular}
+\end{center}
+
+\textit{Adjusted standardized residuals}:
+\begin{center}
+\begin{tabular}{r|rrr}\hline
+ & Not Stopped & Bribe & Warning\\ \hline
+Upper & 0.3220 & -1.6420 & 1.5230\\
+Lower & -0.3220 & 1.6420 & -1.5230\\ \hline
+\end{tabular}
+\end{center}
+
+\textit{R snippet:}
+\begin{lstlisting}[caption={Q1(c) residuals in R}]
+pearson_res <- (obs - expected) / sqrt(expected)
+row_prop <- rowSums/total; col_prop <- colSums/total
+adj_res <- matrix(NA, nrow=2, ncol=3)
+for(i in 1:2){
+  for(j in 1:3){
+    adj_res[i,j] <- (obs[i,j]-expected[i,j]) /
+      sqrt(expected[i,j]*(1-row_prop[i])*(1-col_prop[j]))
+  }
+}
+\end{lstlisting}
+
+\item \textbf{Interpretation using the residuals.}
+
+As a rule of thumb, $|r|>1.96$ suggests a cell-level deviation at the 5\% level.  
+Here, all adjusted residuals are $|r|<2$ (largest $\approx1.64$), so no cell departs significantly from independence.  
+This aligns with the overall chi-square test ($p=0.1502$): there is no statistically significant association between class and outcome.
+\end{enumerate}
+
+\vspace{0.6cm}
+% ======================================================
+\section*{Question 2: Economics --- Regression Analysis}
+We analyze the effect of political reservation for women on drinking water facilities.
+
+\begin{enumerate}[(a)]
+\item \textbf{State the hypotheses (two-tailed).}
+\begin{align*}
+H_0:\ \beta &= 0 \quad\text{(reservation has no effect)}\\
+H_1:\ \beta &\ne 0 \quad\text{(reservation affects the outcome)}
+\end{align*}
+Model: $\text{water}_i=\alpha+\beta\,\text{reserved}_i+\varepsilon_i$, where \texttt{reserved}$\in\{0,1\}$.
+
+\item \textbf{Estimate the model in R (OLS and robust SE).}
+\begin{lstlisting}[caption={Q2(b) R code}]
+url <- "https://raw.githubusercontent.com/kosukeimai/qss/master/PREDICTION/women.csv"
+women <- read.csv(url)
+
+model <- lm(water ~ reserved, data = women)
+summary(model)
+
+if (!require("sandwich")) install.packages("sandwich")
+if (!require("lmtest"))   install.packages("lmtest")
+library(sandwich); library(lmtest)
+coeftest(model, vcov = vcovHC(model, type = "HC1"))
+\end{lstlisting}
+
+\textbf{Numerical results from your R session:}
+\begin{itemize}
+  \item OLS: $\hat\beta=9.2524$, $\text{SE}=3.948$, $t=2.344$, $p=0.0197$; Residual SE $=33.45$ (320 df); $R^2=0.01688$; adj.\ $R^2=0.0138$; $F(1,320)=5.493$, $p=0.0197$.
+  \item Robust (HC1): $\hat\beta=9.2524$, $\text{SE}=5.0932$, $t=1.8166$, $p=0.0702$.
+\end{itemize}
+
+\item \textbf{Interpret the coefficient and statistical significance.}
+
+$\hat\beta=9.25$ means villages with reserved seats for women have on average $\approx$9.25 more new/repaired water facilities than non-reserved villages, holding the specification fixed.
+Under conventional OLS SEs this is statistically significant at 5\% ($p=0.0197$). Using heteroskedasticity-robust SEs (HC1), the effect remains positive but is only marginally significant at 10\% ($p=0.0702$).
+Model fit is weak ($R^2\approx0.017$), so practical significance should be interpreted cautiously.
+
+
+\end{enumerate}
+
+\end{document}

@@ -1,0 +1,120 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\usepackage{amsmath, amssymb}
+\usepackage{hyperref}
+\usepackage{caption}
+\captionsetup{font=small}
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue, citecolor=black}
+
+\title{Problem Set 3}
+\author{Qi Liu (25340516)}
+\date{}
+
+\begin{document}
+\maketitle
+
+
+\section{Q1: Regression of \textit{voteshare} on \textit{difflog}}
+We estimate:
+\begin{equation*}
+\widehat{voteshare} = \beta_0 + \beta_1 \, difflog.
+\end{equation*}
+Fitted equation:
+\begin{equation*}
+\widehat{voteshare} = 0.5790 + 0.0417 \cdot difflog.
+\end{equation*}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.85\textwidth]{q1_voteshare_difflog.png}
+    \caption{Q1: \textit{voteshare} vs \textit{difflog} with OLS fit.}
+    \label{fig:q1}
+\end{figure}
+
+\clearpage
+\section{Q2: Regression of \textit{presvote} on \textit{difflog}}
+We estimate:
+\begin{equation*}
+\widehat{presvote} = \alpha_0 + \alpha_1 \, difflog.
+\end{equation*}
+Fitted equation:
+\begin{equation*}
+\widehat{presvote} = 0.5076 + 0.0238 \cdot difflog.
+\end{equation*}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.85\textwidth]{q2_presvote_difflog.png}
+    \caption{Q2: \textit{presvote} vs \textit{difflog} with OLS fit.}
+    \label{fig:q2}
+\end{figure}
+
+\clearpage
+\section{Q3: Regression of \textit{voteshare} on \textit{presvote}}
+We estimate:
+\begin{equation*}
+\widehat{voteshare} = \gamma_0 + \gamma_1 \, presvote.
+\end{equation*}
+Fitted equation:
+\begin{equation*}
+\widehat{voteshare} = 0.4413 + 0.3880 \cdot presvote.
+\end{equation*}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.85\textwidth]{q3_voteshare_presvote.png}
+    \caption{Q3: \textit{voteshare} vs \textit{presvote} with OLS fit.}
+    \label{fig:q3}
+\end{figure}
+
+\clearpage
+\section{Q4: Residual-on-Residual (Add-Variable) Regression}
+Let $res\_q1$ be residuals from regressing \textit{voteshare} on \textit{difflog}, and $res\_q2$ be residuals from regressing \textit{presvote} on \textit{difflog}. We estimate:
+\begin{equation*}
+res\_q1 = \delta_0 + \delta_1 \, res\_q2 + \varepsilon.
+\end{equation*}
+Fitted equation:
+\begin{equation*}
+\widehat{res\_q1} = -0.000000 + 0.256877 \cdot res\_q2.
+\end{equation*}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.85\textwidth]{q4_residual_on_residual.png}
+    \caption{Q4: Added-variable plot -- residuals of \textit{voteshare} on \textit{difflog} vs residuals of \textit{presvote} on \textit{difflog}, with fitted OLS line.}
+    \label{fig:q4}
+\end{figure}
+
+\clearpage
+\section{Q5: Multiple Regression and FWL Check}
+We estimate:
+\begin{equation*}
+\widehat{voteshare} = \theta_0 + \theta_1 \, difflog + \theta_2 \, presvote.
+\end{equation*}
+Fitted equation:
+\begin{equation*}
+\widehat{voteshare} = 0.4486 + 0.0355 \cdot difflog + 0.2569 \cdot presvote.
+\end{equation*}
+
+\subsection*{FWL Equality (Numerical Verification)}
+The coefficient on \textit{presvote} in Q5 must equal the slope in Q4 for $res\_q2$.
+\begin{table}[h!]
+\centering
+\caption{FWL comparison: Q4 residual-on-residual vs Q5 multiple regression (coefficient on \textit{presvote}).}
+\label{tab:fwl}
+\begin{tabular}{lrrrr}
+\toprule
+Model & Estimate & Std. Error & t-statistic & p-value \\
+\midrule
+Q4 residual-on-residual & 0.2569 & 0.0118 & 21.8398 & 0.0000 \\
+Q5 multiple OLS & 0.2569 & 0.0118 & 21.8363 & 0.0000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Interpretation.} After controlling for \textit{difflog}, \textit{presvote} remains a strong predictor of \textit{voteshare}. The identical entries across Q4 and Q5 validate the Frisch--Waugh--Lovell theorem.
+
+\end{document}

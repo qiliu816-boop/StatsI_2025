@@ -47,7 +47,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 # movie genre and rating?
 
 # Load data
-df <- readRDS("../../datasets/movies.csv")
+df <- readRDS("../../datasets/movies.rds")
 View(df)
 
 # Dataframe subsetting: df[rows, columns]

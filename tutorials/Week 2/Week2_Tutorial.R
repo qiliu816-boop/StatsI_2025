@@ -277,3 +277,4 @@ plot(density(trial2),
 
 mean(trial2)
 var(trial2)
+

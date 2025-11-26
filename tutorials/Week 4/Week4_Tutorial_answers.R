@@ -61,7 +61,7 @@ summary(df_not_tidy)
 # Research question:
 # Do different genres receive different critical appreciation?
 
-# Load the tidy version of the data
+# Load the tidy version of thedata
 # (Prepared using the data_wrangling.R script)
 df <- readRDS("../../datasets/movies.rds")
 str(df)
@@ -155,7 +155,7 @@ prop.table(table(df_s$genre,
                  df_s$critics_rating))
 
 # - manual check for 'comedy' genre: which values do we use? 
-# Your answer here 
+63/444
 
 # Interpretation:
 # Estimated probability of two specific values co-occurring.
@@ -172,7 +172,7 @@ prop.table(table(df_s$genre,           # rows
            margin = 1) # over rows
 
 # - manual check for 'comedy' AND 'rotten': which values do we use? 
-# your answer here
+63/87
 
 # Add marginal distributions (conditional on rows)
 addmargins(prop.table(table(df_s$genre, 
@@ -201,12 +201,12 @@ round(0.72413793, 2)
 
 # What do we use here then? 
 # Over columns --> Genre conditional on critics rating
-addmargins(prop.table(table(# your answer here,           #row
-                            # your answer here), # column
+addmargins(prop.table(table(df_s$genre,           #row
+                            df_s$critics_rating), # column
                       margin = 2)) 
                       
 # - manual check for 'comedy' given 'rotten' : which values do we use?                       
-# your answer here
+63/190
 
 # ==========================================================
 # Visualizing conditional distributions with a bar plot

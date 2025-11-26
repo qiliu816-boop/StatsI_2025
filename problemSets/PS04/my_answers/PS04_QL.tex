@@ -1,0 +1,293 @@
+\documentclass[12pt]{article}
+\usepackage{amsmath, amssymb}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\geometry{margin=1in}
+
+\title{Problem Set 4}
+\author{Qi Liu (25340516)}
+\date{}
+
+% ---------- R code style (matches PS3 answer key) ----------
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codered}{rgb}{0.6,0,0}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.95}
+
+\lstdefinestyle{RStyle}{
+	language=R,
+	backgroundcolor=\color{backcolour},
+	commentstyle=\color{codegreen},
+	keywordstyle=\color{codepurple},
+	stringstyle=\color{codered},
+	basicstyle=\ttfamily\small,
+	breaklines=true,
+	numbers=left,
+	numberstyle=\tiny\color{gray},
+	frame=single,
+	tabsize=2,
+	showstringspaces=false
+}
+
+\begin{document}
+	
+	\maketitle
+	
+	\section*{Question 1}
+	
+	We are interested in how income and occupational type are related to
+	occupational prestige. We focus on whether professional occupations have
+	higher prestige and whether the effect of income differs between
+	professional and non-professional jobs.
+	
+	\subsection*{1. Create the professional dummy variable}
+	
+	We create a dummy variable that equals 1 for professional occupations and
+	0 for blue- and white-collar occupations.
+	
+	\begin{lstlisting}[style=RStyle]
+		# Load data
+		library(car)
+		data(Prestige)
+		
+		# Create dummy variable: professional = 1 if type == "prof", else 0
+		Prestige$professional <- ifelse(Prestige$type == "prof", 1, 0)
+		
+		# Check coding
+		table(Prestige$professional, Prestige$type)
+	\end{lstlisting}
+	
+	\subsection*{2. Regress prestige on income, professional, and interaction}
+	
+	We estimate the following model:
+	\[
+	prestige_i = \beta_0 + \beta_1 income_i + \beta_2 professional_i
+	+ \beta_3 (income_i \cdot professional_i) + \varepsilon_i.
+	\]
+	
+	The regression is run in R as follows:
+	
+	\begin{lstlisting}[style=RStyle]
+		# Run regression with interaction
+		m1 <- lm(prestige ~ income * professional, data = Prestige)
+		summary(m1)
+	\end{lstlisting}
+	
+	Table~\ref{tab:q1} reports the regression results.
+	
+	\begin{table}[h!]
+		\centering
+		\caption{Outcome variable is prestige. Predictors are income,
+			professional, and their interaction.}
+		\label{tab:q1}
+		\begin{tabular}{l c}
+			\toprule
+			& Model 1 \\
+			\midrule
+			(Intercept)               & 21.1423*** \\
+			& (2.8044)   \\
+			income                    & 0.0031709*** \\
+			& (0.0004993) \\
+			professional              & 37.7813*** \\
+			& (4.2483)   \\
+			income:professional       & -0.0023257*** \\
+			& (0.0005675) \\
+			\midrule
+			R-squared                 & 0.7872     \\
+			Adj.\ R-squared           & 0.7804     \\
+			Num.\ obs.                & 98         \\
+			\bottomrule
+		\end{tabular}
+		
+		\begin{flushleft}
+			{\footnotesize Standard errors in parentheses.
+				***p$<$0.001, **p$<$0.01, *p$<$0.05.}
+		\end{flushleft}
+	\end{table}
+	
+	\subsection*{3. Prediction equation}
+	
+	Using the estimated coefficients from Table~\ref{tab:q1}, the fitted equation is
+	\[
+	\widehat{prestige} =
+	21.1423
+	+ 0.0031709 \cdot income
+	+ 37.7813 \cdot professional
+	- 0.0023257 (income \cdot professional).
+	\]
+	
+	\subsection*{4. Interpretation of income coefficient}
+	
+	The coefficient on income is 0.0031709. This represents the marginal
+	effect of income on prestige for non-professional occupations
+	(professional = 0). Holding professional status fixed at 0, a one-unit
+	(one dollar) increase in income is associated with an average increase of
+	0.00317 points in prestige. A 1{,}000-unit increase in income
+	corresponds to an increase of about 3.17 points in prestige.
+	
+	\subsection*{5. Interpretation of professional coefficient}
+	
+	The coefficient on the professional dummy is 37.7813. Because the model
+	includes an interaction between income and professional, this coefficient
+	captures the difference in predicted prestige between professional and
+	non-professional occupations when income equals 0. At income = 0,
+	professional occupations are predicted to have about 37.78 more prestige
+	points than non-professional occupations.
+	
+	\subsection*{6. Effect of a 1{,}000-unit income increase for professionals}
+	
+	With an interaction term, the marginal effect of income is
+	\[
+	\frac{\partial \widehat{prestige}}{\partial income}
+	= \beta_1 + \beta_3 \cdot professional.
+	\]
+	
+	For professional occupations (professional = 1), this becomes
+	\[
+	ME_{income|prof=1} = 0.0031709 - 0.0023257 = 0.0008452.
+	\]
+	
+	Thus, for professionals, a 1{,}000-unit increase in income changes prestige by
+	\[
+	1000 \times 0.0008452 \approx 0.8452.
+	\]
+	
+	The corresponding R code is:
+	
+	\begin{lstlisting}[style=RStyle]
+		beta <- coef(m1)
+		marg_income_prof1_per1 <- beta["income"] + beta["income:professional"]
+		marg_income_prof1_1000 <- marg_income_prof1_per1 * 1000
+	\end{lstlisting}
+	
+	This shows that income has a positive but comparatively small effect on
+	prestige among professional occupations.
+	
+	\subsection*{7. Effect of switching to professional at income = 6000}
+	
+	The effect of changing from non-professional (professional = 0) to
+	professional (professional = 1) at a given income level is
+	\[
+	\Delta prestige = \beta_2 + \beta_3 \cdot income.
+	\]
+	
+	At income = 6000, we obtain
+	\[
+	\Delta prestige = 37.7813 + 6000(-0.0023257) = 23.8270.
+	\]
+	
+	In other words, at an income level of 6{,}000, professional occupations are
+	predicted to have about 23.83 more prestige points than non-professional
+	occupations.
+	
+	The calculation is implemented in R as:
+	
+	\begin{lstlisting}[style=RStyle]
+		effect_prof_switch_6000 <-
+		beta["professional"] + 6000 * beta["income:professional"]
+	\end{lstlisting}
+	
+	%========================================================
+	% Question 2
+	%========================================================
+	\section*{Question 2}
+	
+	We now consider an experiment on campaign yard signs in a gubernatorial
+	election. The outcome variable is the vote share of Cuccinelli, and the
+	key predictors are indicators for whether a precinct was assigned yard
+	signs and whether it was adjacent to precincts with yard signs. The
+	regression model is
+	\[
+	voteshare_i = \beta_0 + \beta_1 assigned_i + \beta_2 adjacent_i
+	+ \varepsilon_i.
+	\]
+	
+	The reported coefficients are summarized in Table~\ref{tab:q2}.
+	
+	\begin{table}[h!]
+		\centering
+		\caption{Effect of campaign yard signs on Cuccinelli's vote share.}
+		\label{tab:q2}
+		\begin{tabular}{l c}
+			\toprule
+			& Model 1 \\
+			\midrule
+			(Intercept)                     & 0.302*** \\
+			& (0.011)  \\
+			Assigned lawn signs            & 0.042**  \\
+			& (0.016)  \\
+			Adjacent to lawn signs         & 0.042*** \\
+			& (0.013)  \\
+			\midrule
+			R-squared                      & 0.094    \\
+			Num.\ obs.                     & 131      \\
+			\bottomrule
+		\end{tabular}
+		
+		\begin{flushleft}
+			{\footnotesize Standard errors in parentheses.
+				***p$<$0.01, **p$<$0.05.}
+		\end{flushleft}
+	\end{table}
+	
+	\subsection*{1. Do yard signs affect vote share?}
+	
+	We first test whether having yard signs in a precinct affects vote
+	share. The null and alternative hypotheses for the coefficient on
+	assigned are:
+	\[
+	H_0: \beta_1 = 0, \qquad H_1: \beta_1 \neq 0.
+	\]
+	
+	The estimated coefficient is 0.042 with a standard error of 0.016. The
+	t-statistic is
+	\[
+	t = \frac{0.042}{0.016} \approx 2.63.
+	\]
+	
+	Using a two-sided test with significance level 0.05, the critical value
+	is about 1.98. Since the absolute t-statistic is larger than 1.98, we
+	reject the null hypothesis and conclude that yard signs have a
+	statistically significant effect on vote share. Substantively, precincts
+	that were assigned yard signs are predicted to give Cuccinelli about
+	4.2 percentage points more of the vote than similar precincts without
+	signs.
+	
+	\subsection*{2. Do adjacent precincts show an effect?}
+	
+	We next consider the effect of being adjacent to precincts with yard
+	signs. The estimated coefficient is again 0.042, with a standard error
+	of 0.013. The t-statistic is
+	\[
+	t = \frac{0.042}{0.013} \approx 3.23.
+	\]
+	
+	This value is also larger than 1.98 in absolute value, so we reject the
+	null hypothesis that the coefficient on adjacent is zero. We conclude
+	that precincts adjacent to yard signs also show a statistically
+	significant increase in Cuccinelli's vote share of about 4.2 percentage
+	points.
+	
+	\subsection*{3. Interpretation of the intercept}
+	
+	The intercept is estimated as 0.302. This represents the expected vote
+	share for Cuccinelli in precincts that neither had yard signs nor were
+	adjacent to precincts with yard signs. In the absence of any yard sign
+	exposure, Cuccinelli is predicted to receive about 30.2 percent of the
+	vote.
+	
+	\subsection*{4. Model fit and importance of yard signs}
+	
+	The model has R-squared equal to 0.094, meaning that the two yard sign
+	variables explain about 9.4 percent of the variation in vote share
+	across precincts. This indicates that while yard signs and adjacency
+	have statistically detectable effects, most of the variation in vote
+	share is driven by other factors not included in the model, such as
+	demographics, partisanship, candidate quality, or other campaign
+	activities. Yard signs matter, but they are only one of many
+	determinants of electoral outcomes.
+	
+\end{document}
